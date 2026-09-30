@@ -1,0 +1,315 @@
+<!-- Created With Codewith.it -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orario Scolastico - SMS G. Sinopoli</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #eef2f7; color: #333; margin: 0; padding: 20px; }
+    #contiene { max-width: 1000px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    header { text-align: center; border-bottom: 3px solid #002d62; padding-bottom: 15px; margin-bottom: 25px; }
+    h1 { font-size: 26px; color: #002d62; margin: 5px 0; }
+    h2 { font-size: 18px; color: #555; margin: 5px 0; }
+    .info-version { font-size: 13px; color: #0284c7; font-weight: bold; margin-top: 5px; }
+    
+    /* Layout flessibile di base (Desktop) */
+    .selettori-container { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; align-items: flex-end; }
+    .box-selettore { flex: 1; max-width: 320px; }
+    .testo-intermezzo { font-weight: bold; color: #64748b; padding-bottom: 35px; text-align: center; }
+    .box-selettore-classe { padding-bottom: 31px; }
+
+    .box-navigazione { display: flex; gap: 5px; margin-top: 5px; }
+    .btn-nav { flex: 1; padding: 8px; font-size: 13px; font-weight: bold; border-radius: 4px; border: 1px solid #cbd5e1; background-color: #002d62; color: white; cursor: pointer; }
+    .btn-nav:disabled { background-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; color: #002d62; }
+    select { width: 100%; padding: 10px; font-size: 15px; border-radius: 6px; border: 1px solid #cbd5e1; background-color: #fff; box-sizing: border-box; }
+    #risultato-titolo { text-align: center; font-size: 20px; font-weight: bold; color: #002d62; margin-top: 20px; }
+    
+    /* Tabella responsive */
+    .tabella-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
+    .tabella-orario { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .tabella-orario th, .tabella-orario td { border: 1px solid #cbd5e1; padding: 12px; text-align: center; font-size: 14px; }
+    .tabella-orario th { background-color: #002d62; color: white; }
+    .tabella-orario tr:nth-child(even) { background-color: #f8fafc; }
+    .ora-col { font-weight: bold; background-color: #f1f5f9; width: 80px; }
+    .cell-vuota { color: #94a3b8; font-style: italic; }
+    .aula-info { display: block; font-size: 11px; color: #0284c7; font-weight: bold; margin-top: 2px; }
+
+    /* 📱 OTTIMIZZAZIONE SMARTPHONE (Schermi inferiori a 768px) */
+    @media (max-width: 767px) {
+      body { padding: 10px; }
+      #contiene { padding: 15px; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 16px; }
+      
+      /* Incolonna i menu uno sopra l'altro */
+      .selettori-container { flex-direction: column; align-items: stretch; gap: 10px; padding: 15px; }
+      .box-selettore { max-width: 100%; }
+      .box-selettore-classe { padding-bottom: 0; }
+      
+      /* Sistema la spaziatura del testo 'oppure' */
+      .testo-intermezzo { padding-bottom: 0; margin: 5px 0; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<div id="contiene">
+  <header>   
+    <h1>INTERROGA IL TUO ORARIO</h1>
+    <h2>SMS G. Sinopoli</h2>
+    <div id="versione-file" class="info-version">Caricamento dati locali...</div>
+  </header>
+  <main id="interfaccia-orario">
+    <div class="selettori-container">
+      <div class="box-selettore">
+        <label for="select-prof">Cognome Docente</label>
+        <select id="select-prof" onchange="mostraOrarioDocente(this.value)"><option value="">Scegli un docente...</option></select>
+        <div class="box-navigazione">
+          <button id="btn-prev-prof" class="btn-nav" onclick="navigaDocente(-1)" disabled>◀ Prec.</button>
+          <button id="btn-next-prof" class="btn-nav" onclick="navigaDocente(1)" disabled>Succ. ▶</button>
+        </div>
+      </div>
+      <div class="testo-intermezzo">oppure</div>
+      <div class="box-selettore box-selettore-classe">
+        <label for="select-classe">Classe</label>
+        <select id="select-classe" onchange="mostraOrarioClasse(this.value)"><option value="">Scegli una classe...</option></select>
+      </div>
+    </div>
+    <div id="area-orario" style="display: none;">
+      <div id="risultato-titolo"></div>
+      <div class="tabella-wrapper">
+        <table class="tabella-orario">
+          <thead><tr><th>Ora</th><th>Lunedì</th><th>Martedì</th><th>Mercoledì</th><th>Giovedì</th><th>Venerdì</th></tr></thead>
+          <tbody id="corpo-orario"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ======================================================================= -->
+<!--                   INIZIO PARTE 2: DATABASE DELL'ORARIO                 -->
+<!-- ======================================================================= -->
+<script>
+  // Array rigido contenente le righe del database della scuola
+  const righeOrarioSinopoli = [
+    "#SCHOOL:WP97:SMS G.Sinopoli",
+    "#CALE:5:6",
+    "#MEMO:Orario scolastico",
+    "ALCINI:,,1/G/ ,1/G/ ,2/G/ ,3/G/ ,-3/G/ ,3/G/ ,1/G/ ,,,,-2/G/ ,2/G/ ,,1/G/ ,,1/G/ ,-3/G/ ,3/G/ ,2/G/ ,,,,-,,1/G/ ,2/G/ ,3/G/ ,2/G/ ,-",
+    "ANTICI:3/E/ /PALESTRA,1/C/ /PALESTRA,2/B/ /PALESTRA,,3/B/ /PALESTRA,1/E/ /PALESTRA,-,1/B/ /PALESTRA,3/C/ /PALESTRA,,2/E/ /PALESTRA,2/C/ /PALESTRA,-,,,,2/B/ /PALESTRA,3/E/ /PALESTRA,-,,1/C/ /PALESTRA,1/E/ /PALESTRA,3/B/ /PALESTRA,3/C/ /PALESTRA,-,,,2/C/ /PALESTRA,2/E/ /PALESTRA,1/B/ /PALESTRA,-",
+    "APPOLLONI:3/G/ /PALESTRA,1/G/ /PALESTRA,,,,,-2/I/ /PALESTRA,1/I/ /PALESTRA,3/I/ /PALESTRA,1/H/ /PALESTRA,,,-3/H/ /PALESTRA,1/L/ /PALESTRA,2/G/ /PALESTRA,,,,-2/I/ /PALESTRA,1/I/ /PALESTRA,1/G/ /PALESTRA,,3/I/ /PALESTRA,3/G/ /PALESTRA,-,3/H/ /PALESTRA,1/L/ /PALESTRA,,2/G/ /PALESTRA,1/H/ /PALESTRA,-",
+    "BOLOGNA:,,,,,,-3/C/ ,,,,,,-,,,R/ / ,,,-,,,3/C/ ,,,-3/C/ ,,,,,,-",
+    "CALDAROLA:1/C/ ,2/C/ ,1/C/ ,,,,-,,2/C/ ,,1/C/ ,2/E/ ,-1/C/ ,1/C/ ,2/C/ ,2/C/ ,,2/C/ ,-,,2/E/ ,1/C/ /TEATRO,2/C/ /TEATRO,2/C/ ,-,,,1/C/ ,1/C/ ,2/C/ ,-",
+    "CARNEVALI:,1/F/ ,1/F/ ,2/A/ ,R/ / ,3/F/ /TEATRO,-2/A/ ,2/A/ ,2/A/ ,3/F/ ,,3/F/ ,-,,3/F/ ,3/F/ ,2/A/ ,2/A/ ,-,,,1/F/ ,2/A/ ,1/F/ ,-,,,,3/F/ ,2/A/ ,-",
+    "CECCACCIO:,,2/C/ ,2/G/ ,1/C/ ,3/C/ ,-1/A/ ,3/A/ ,,,,,-,,1/G/ ,2/A/ ,3/G/ ,1/C/ ,-3/C/ ,3/A/ ,,1/A/ ,,,-2/G/ ,2/C/ ,,1/G/ ,2/A/ ,3/G/ ,-",
+    "CECILIA:3/D/ ,3/D/ ,2/D/ ,,,,-2/G/ ,1/G/ ,1/I/ ,,3/I/ ,3/I/ ,-,,3/G/ ,3/G/ ,1/D/ ,2/I/ ,-1/I/ ,2/G/ ,,,,,-,1/G/ ,,2/D/ ,2/I/ ,1/D/ ,-",
+    "CERCIELLO:1/E/ ,,2/A/ ,1/A/ ,2/E/ ,,-,,1/F/ ,2/F/ ,3/A/ ,3/E/ ,-3/F/ ,1/E/ ,1/A/ ,,,,-3/E/ ,2/A/ ,2/F/ ,3/A/ ,,2/E/ ,-1/F/ ,3/F/ ,,,,,-",
+    "CESARO':1/F/ ,3/E/ ,2/F/ ,,3/F/ ,2/E/ ,-1/E/ ,3/F/ ,,,,,-,,,1/E/ ,1/F/ ,2/F/ ,-,2/F/ ,,2/E/ ,3/F/ ,3/E/ ,-1/E/ ,2/E/ ,3/E/ ,1/F/ ,,,-",
+    "CORPOLONGO:,,,2/D/ /PALESTRA,3/A/ /PALESTRA,1/D/ /PALESTRA,-,,,1/F/ /PALESTRA,2/F/ /PALESTRA,2/A/ /PALESTRA,-3/D/ /PALESTRA,1/A/ /PALESTRA,,3/A/ /PALESTRA,2/D/ /PALESTRA,3/F/ /PALESTRA,-2/A/ /PALESTRA,1/F/ /PALESTRA,,1/D/ /PALESTRA,,,-3/F/ /PALESTRA,3/D/ /PALESTRA,1/A/ /PALESTRA,2/F/ /PALESTRA,,,-",
+    "COSTACURTA:1/B/ ,2/F/ ,3/F/ ,,,,-,1/E/ ,,2/B/ ,1/F/ ,3/B/ ,-2/E/ ,3/F/ ,3/E/ ,,,,-,,,2/F/ ,1/E/ ,1/B/ ,-2/E/ ,3/B/ ,,2/B/ ,1/F/ ,3/E/ ,-",
+    "DAIDONE:,P/O/T1,3/D/ ,R/ / ,P/O/T1,1/A/ ,-1/D/ ,1/A/ ,1/D/ ,,,,-,,,,P/O/T1,1/D/ ,-P/O/T1,1/D/ ,,3/D/ ,1/A/ ,1/A/ ,-1/D/ ,1/D/ ,3/D/ ,3/D/ ,,,-",
+    "DAVOLI:,,,,,,-P/O/T1,1/H/ ,R/ / ,1/L/ ,P/O/T1,,-,,,,,,-,,1/H/ ,1/L/ ,P/O/T1,P/O/T1,-,,,,,,-",
+    "DE BELLA:,,,2/F/ /TEATRO,1/F/ /TEATRO,2/F/ ,-2/F/ ,2/F/ ,2/F/ ,,3/E/ ,1/F/ ,-1/F/ ,1/F/ ,2/F/ ,,,,-1/F/ ,,1/F/ ,3/E/ ,2/F/ ,2/F/ ,-2/F/ ,2/F/ ,,,,,-",
+    "DE MARCO:,,,2/B/ ,2/A/ ,1/B/ ,-3/A/ ,2/C/ ,,1/C/ ,3/B/ ,,-,,,2/B/ ,1/A/ ,3/C/ ,-3/B/ ,2/C/ ,1/B/ ,,,,-1/C/ ,3/C/ ,,2/A/ ,3/A/ ,1/A/ ,-",
+    "DELL'OMO:2/C/ ,3/C/ ,3/C/ ,2/C/ ,,1/C/ ,-2/C/ ,1/C/ ,1/C/ ,,,,-2/C/ ,2/C/ ,,3/C/ ,1/C/ ,,-1/C/ ,3/C/ ,3/C/ ,,,,-,,,3/C/ ,2/C/ ,1/C/ ,-",
+    "DELLA PIETRA:2/F/ ,3/H/ ,,1/H/ ,2/F/ ,3/H/ ,-,,,,1/H/ ,3/H/ ,-2/F/ ,2/F/ ,1/H/ ,1/H/ ,,,-2/F/ ,3/H/ ,3/H/ ,,,,-3/H/ ,1/H/ ,2/F/ ,1/H/ ,,,-",
+    "DI CASTRO:2/E/ ,1/E/ ,,,,,-2/E/ ,,3/E/ ,3/E/ ,1/E/ ,1/E/ ,-,3/E/ ,2/E/ ,,1/E/ ,2/E/ ,-1/E/ ,1/E/ ,3/E/ ,,,,-3/E/ ,3/E/ ,2/E/ ,2/E/ ,,,-",
+    "DI MARCO:3/A/ ,3/A/ ,,3/G/ ,,,-,,3/G/ ,1/G/ ,1/G/ ,3/G/ ,-3/G/ ,3/G/ ,3/A/ ,,,,-3/A/ ,1/G/ ,,3/G/ ,3/G/ ,1/G/ ,-3/G/ ,3/G/ ,3/G/ ,,,,-",
+    "FARINA:,,3/B/ ,3/B/ ,2/B/ ,2/B/ ,-,,,,,,-,,,3/B/ ,3/B/ ,,-2/B/ ,2/B/ ,,,,,-,,3/B/ ,3/B/ ,2/B/ ,2/B/ ,-",
+    "FERRERI:3/H/ ,1/H/ ,1/E/ ,,,,-,,,2/E/ ,3/F/ ,1/L/ ,-3/E/ ,,1/E/ ,1/F/ ,2/F/ ,,-3/H/ ,2/E/ ,3/F/ ,,,,-1/H/ ,,1/F/ ,3/E/ ,1/L/ ,2/F/ ,-",
+    "FERRINI:2/G/ ,3/G/ ,3/G/ ,,,,-3/I/ ,,2/I/ ,1/I/ ,,1/G/ ,-,,2/I/ ,2/G/ ,1/G/ ,3/G/ ,-,,3/I/ ,3/I/ ,2/G/ ,1/I/ ,-,,,1/I/ ,1/G/ ,2/I/ ,-",
+    "FODALE:1/I/ ,1/L/ ,,1/F/ ,3/H/ ,2/I/ ,-3/F/ ,3/I/ ,1/H/ ,,,,-1/L/ ,1/I/ ,1/F/ ,2/F/ ,,,-,2/I/ ,,1/H/ ,3/H/ ,3/F/ ,-,,,,2/F/ ,3/I/ ,-",
+    "GENTILE:1/H/ ,1/I/ ,,1/L/ ,3/G/ ,2/G/ ,-,,,,,,-2/I/ ,3/H/ ,,,,,-,,,,,,-,,,,3/I/ ,1/G/ ,-",
+    "GURRIERI:2/D/ ,1/D/ ,1/D/ ,,,,-3/D/ ,2/D/ ,,2/D/ ,2/D/ ,3/D/ ,-2/D/ ,2/D/ ,3/D/ ,3/D/ ,,,-3/D/ ,,2/D/ ,2/D/ ,,,-,,,1/D/ ,1/D/ ,3/D/ ,-",
+    "IANNITTI:,,,,3/E/ ,1/G/ ,-,3/D/ ,,1/D/ ,3/G/ ,2/G/ ,-1/E/ ,2/E/ ,2/D/ ,,,,-1/G/ ,3/E/ ,,2/G/ ,1/D/ ,3/D/ ,-,,1/E/ ,3/G/ ,2/D/ ,2/E/ ,-",
+    "MAIORANA:3/B/ ,3/B/ ,,,,,-2/B/ ,3/B/ ,3/B/ ,,,,-2/B/ ,2/B/ ,3/B/ ,1/B/ ,,,-,3/B/ ,3/B/ ,,2/B/ ,3/B/ ,-1/B/ ,2/B/ ,2/B/ ,,3/B/ ,3/B/ ,-",
+    "MARI:,,,,1/D/ ,3/D/ ,-,,3/D/ ,3/D/ ,1/D/ ,2/D/ ,-1/D/ ,1/D/ ,,2/D/ ,3/D/ ,2/D/ ,-1/D/ ,2/D/ ,3/D/ ,,,,-2/D/ ,2/D/ ,1/D/ ,,3/D/ ,,-",
+    "MERCURIO:2/A/ ,1/A/ ,,1/D/ ,2/D/ ,3/A/ ,-,1/D/ ,2/D/ ,,3/D/ ,1/A/ ,-3/A/ ,2/A/ ,,,,,-,,1/A/ ,2/A/ ,3/D/ ,1/D/ ,-3/D/ ,3/A/ ,2/D/ ,,,,-",
+    "MICALETTI:,2/I/ ,,3/I/ ,3/I/ ,3/I/ ,-,,,3/I/ ,1/I/ ,1/I/ ,-,2/I/ ,3/I/ ,,3/I/ ,1/I/ ,-,,1/I/ ,1/I/ ,1/I/ ,3/I/ ,-,,,3/I/ ,1/I/ ,1/I/ ,-",
+    "MUSTILLI:3/F/ ,D/ / ,3/H/ ,3/H/ ,D/ / ,,-3/H/ ,3/H/ ,3/H/ ,,,,-,,,,3/H/ ,3/H/ ,-3/F/ ,3/F/ ,D/ / ,3/H/ ,D/ / ,3/H/ /TEATRO,-,,,,3/H/ ,3/F/ ,-",
+    "NESPOLA:,,1/A/ ,1/C/ ,2/C/ ,3/B/ ,-,,2/B/ ,3/C/ ,2/A/ ,1/B/ ,-,3/A/ ,1/C/ ,,2/C/ ,3/B/ ,-,,2/B/ ,,3/C/ ,2/A/ ,-,,,1/B/ ,1/A/ ,3/A/ ,-",
+    "ORLANDI:2/B/ ,2/A/ ,3/E/ ,,,,-1/B/ ,3/C/ ,3/F/ ,,2/C/ ,2/F/ ,-3/B/ ,3/D/ ,1/D/ ,,,,-,,1/E/ ,,2/E/ ,2/D/ ,-1/A/ ,1/F/ ,1/C/ ,3/A/ ,,,-",
+    "PACE:3/I/ ,2/D/ ,,1/I/ ,3/D/ ,,-,,,,3/H/ ,1/D/ ,-1/I/ ,1/H/ ,1/L/ ,2/I/ ,,3/I/ ,-2/D/ ,3/D/ ,1/D/ ,,,,-,,2/I/ ,3/H/ ,1/H/ ,1/L/ ,-",
+    "PERSIANI:,,,3/E/ ,3/C/ ,3/E/ ,-3/E/ ,3/E/ ,1/E/ ,1/E/ ,,,-3/C/ ,P/O/T1,,3/E/ ,3/E/ ,1/E/ ,-,,,,3/E/ ,1/E/ ,-P/O/T1,1/E/ ,,1/E/ ,3/E/ ,,-",
+    "PIERSANTI:,,2/I/ ,2/I/ ,1/H/ ,1/H/ ,-,,,2/I/ ,2/I/ ,1/H/ ,-,,,3/I/ ,1/H/ ,1/H/ ,-1/H/ ,1/H/ ,,,2/I/ ,2/I/ ,-3/I/ ,2/I/ ,1/H/ ,2/I/ ,,,-",
+    "PIZZUTI:,,3/A/ ,3/A/ ,1/A/ ,2/A/ ,-,,,2/A/ ,1/A/ ,3/A/ ,-2/A/ ,,2/A/ ,,3/A/ ,1/A/ ,-1/A/ ,1/A/ ,3/A/ ,,,,-3/A/ ,2/A/ ,2/A/ ,1/A/ ,,,-",
+    "PONZO:1/A/ ,1/B/ ,1/B/ ,1/B/ ,,,-,,1/A/ ,1/A/ ,2/B/ ,2/B/ ,-1/A/ ,R/ / ,1/B/ ,1/A/ ,1/B/ ,2/B/ ,-1/B/ ,1/B/ ,,,,,-2/B/ ,1/A/ ,1/B/ ,,,,-",
+    "PREGER:2/I/ ,3/I/ ,1/I/ ,,2/I/ ,1/I/ ,-1/I/ ,2/I/ ,,,,,-3/I/ ,3/I/ ,,1/I/ ,2/I/ ,,-3/I/ ,3/I/ ,2/I/ ,2/I/ ,,,-1/I/ ,1/I/ ,3/I/ ,,,,-",
+    "SERVELLO A:1/G/ ,2/G/ ,2/G/ ,,1/I/ ,,-1/G/ ,2/G/ ,2/G/ ,2/G/ ,,,-1/G/ ,1/G/ ,1/I/ ,,2/G/ ,2/G/ ,-,,,,1/G/ ,2/G/ ,-1/G/ ,2/G/ ,2/G/ ,,,,-",
+    "SERVELLO S:3/C/ ,2/E/ ,2/E/ ,2/E/ ,,,-1/C/ ,2/E/ ,2/E/ ,,3/C/ /TEATRO,3/C/ /TEATRO,-,3/C/ ,3/C/ ,2/E/ ,2/E/ ,,-2/E/ ,1/C/ ,,,,,-,,3/C/ ,,3/C/ ,3/C/ ,-",
+    "SIMONCELLI:,,,,,,-,,,1/B/ ,1/B/ ,,-1/B/ ,1/B/ ,R/ / ,,,,-,,,1/B/ ,1/B/ ,,-,,,,,,-",
+    "SPINA:,,,,,,-2/D/ ,P/O/T1,,,,R/ / ,-,,,,,,-2/C/ ,P/O/T1,2/A/ ,,,,-2/A/ ,P/O/T1,2/C/ ,,P/O/T1,2/D/ ,-",
+    "SURACE:,,,3/C/ ,1/B/ ,2/C/ ,-1/H/ ,2/B/ ,,3/B/ ,,,-,,3/H/ ,1/C/ ,3/C/ ,1/L/ ,-,,,3/B/ ,1/H/ ,2/B/ ,-2/C/ ,1/C/ ,,1/L/ ,1/B/ ,3/H/ ,-",
+    "TORNISELLO:,3/F/ ,,3/F/ ,1/L/ ,1/F/ ,-1/F/ ,1/F/ ,1/L/ ,,,,-,,,1/L/ ,3/F/ ,1/F/ ,-,,,3/F/ ,1/F/ ,1/L/ ,-1/L/ ,1/L/ ,3/F/ ,3/F/ ,,1/F/ ,-",
+    "VACCA TORELLI:1/L/ ,2/B/ ,1/H/ ,,,,-3/B/ ,,1/B/ ,3/H/ ,1/L/ ,,-1/H/ ,3/B/ ,2/B/ ,3/H/ ,,1/B/ ,-,,,2/B/ ,1/L/ ,1/H/ ,-3/B/ ,1/B/ ,3/H/ ,,,,-",
+    "VALENTINI:1/D/ ,,3/I/ ,3/D/ ,1/G/ ,2/D/ ,-,,,3/G/ ,2/G/ ,2/I/ ,-,,,1/D/ ,1/I/ ,3/D/ ,-2/G/ ,,3/G/ ,1/G/ ,2/D/ ,,-2/I/ ,3/I/ ,1/I/ ,,,,-",
+    "VINCI:,,1/L/ ,1/E/ ,1/E/ ,1/L/ ,-1/L/ ,1/L/ ,3/A/ ,3/A/ ,,,-,,,,1/L/ ,3/A/ ,-1/L/ ,1/L/ ,1/L/ /TEATRO,,3/A/ ,3/A/ ,-,,3/A/ ,,1/E/ ,1/E/ ,-",
+    "ZACCHEI:,,,,,,-,,,2/C/ ,,1/C/ ,-,,,,,,-,,2/C/ ,2/C/ ,1/C/ ,1/C/ ,-,,,,,,-"
+  ];
+</script>
+<!-- ======================================================================= -->
+<!--                   FINE PARTE 2 - INIZIO PARTE 3: MOTORE DI CALCOLO      -->
+<!-- ======================================================================= -->
+<script>
+  let orarioProfessori = {}, orarioClassi = {}, listaClassiSet = new Set();
+  let listaDocentiOrdinata = []; // Elenco di supporto per i tasti Avanti/Indietro
+
+  function elaboraDatabaseInterno() {
+    orarioProfessori = {}; orarioClassi = {}; listaClassiSet.clear();
+    
+    righeOrarioSinopoli.forEach(riga => {
+      riga = riga.trim();
+      if (!riga) return;
+      if (riga.startsWith('#')) {
+        if(riga.startsWith('#MEMO:')) {
+          document.getElementById('versione-file').innerText = riga.replace('#MEMO:', 'Database: ');
+        }
+        return;
+      }
+
+      const segmenti = riga.split(':');
+      if (segmenti.length < 2) return;
+      
+      const nomeProf = segmenti[0].trim();
+      const oreGrezze = segmenti[1].split(',').map(o => o.trim());
+      orarioProfessori[nomeProf] = oreGrezze.slice(0, 30);
+
+      orarioProfessori[nomeProf].forEach((strOra, indice) => {
+        if (!strOra || strOra === '-' || strOra === 'R/ /') return;
+        
+        const info = strOra.replace(/^-/, '').split('/');
+        let anno = info[0] ? info[0].trim() : "";
+        let sez = info[1] ? info[1].trim() : "";
+        let aula = info[2] ? info[2].trim() : (info[3] && info[3].trim() !== "") ? info[3].trim() : "";
+
+        let clUnivoca = "";
+        if (anno === "P" && sez === "O") { clUnivoca = ""; } 
+        else if (anno === "R") { clUnivoca = ""; } 
+        else if (anno && sez) { clUnivoca = anno + " " + sez; }
+
+        if (clUnivoca) {
+          listaClassiSet.add(clUnivoca);
+          if (!orarioClassi[clUnivoca]) orarioClassi[clUnivoca] = Array(30).fill("");
+          orarioClassi[clUnivoca][indice] = nomeProf + (aula ? " / " + aula : "");
+        }
+      });
+    });
+
+    popolaSelettoriModulari();
+  }
+
+  function popolaSelettoriModulari() {
+    const sp = document.getElementById('select-prof');
+    const sc = document.getElementById('select-classe');
+    
+    sp.innerHTML = '<option value="">Scegli un docente...</option>';
+    sc.innerHTML = '<option value="">Scegli una classe...</option>';
+
+    listaDocentiOrdinata = Object.keys(orarioProfessori).sort();
+    listaDocentiOrdinata.forEach(p => { 
+      sp.options[sp.options.length] = new Option(p, p); 
+    });
+    
+    Array.from(listaClassiSet).sort().forEach(c => { 
+      sc.options[sc.options.length] = new Option(c, c); 
+    });
+  }
+
+  function gestisciPulsantiNavigazione(profCorrente) {
+    const btnPrev = document.getElementById('btn-prev-prof');
+    const btnNext = document.getElementById('btn-next-prof');
+    
+    if (!profCorrente) {
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
+      return;
+    }
+    
+    const indice = listaDocentiOrdinata.indexOf(profCorrente);
+    btnPrev.disabled = (indice <= 0);
+    btnNext.disabled = (indice >= listaDocentiOrdinata.length - 1);
+  }
+
+  function navigaDocente(direzione) {
+    const sp = document.getElementById('select-prof');
+    const profCorrente = sp.value;
+    if (!profCorrente) return;
+    
+    const indiceAttuale = listaDocentiOrdinata.indexOf(profCorrente);
+    const nuovoIndice = indiceAttuale + direzione;
+    
+    if (nuovoIndice >= 0 && nuovoIndice < listaDocentiOrdinata.length) {
+      const nuovoProf = listaDocentiOrdinata[nuovoIndice];
+      sp.value = nuovoProf;
+      mostraOrarioDocente(nuovoProf);
+    }
+  }
+
+  function formattaCellaDocente(strOra) {
+    if (!strOra || strOra === "-" || strOra.startsWith("R/") || strOra.startsWith("-R/")) {
+      return '<span class="cell-vuota">libero</span>';
+    }
+    
+    let stringaPulita = strOra.replace(/^-/, '');
+    const info = stringaPulita.split('/');
+    let anno = info[0] ? info[0].trim() : "";
+    let sez = info[1] ? info[1].trim() : "";
+    let aula = info[2] ? info[2].trim() : (info[3] && info[3].trim() !== "") ? info[3].trim() : "";
+    
+    if (anno === "R") return '<span class="cell-vuota">libero</span>';
+    if (anno === "P" && sez === "O") return "<strong>P O T1</strong>";
+    return "<strong>" + anno + " " + sez + "</strong>" + (aula ? "<span class='aula-info'>" + aula + "</span>" : "");
+  }
+
+  function formattaCellaClasse(strDato) {
+    if (!strDato) return '<span class="cell-vuota">libero</span>';
+    if (strDato.includes(' / ')) {
+      const b = strDato.split(' / ');
+      return "<strong>" + b[0] + "</strong><span class='aula-info'>" + b[1] + "</span>";
+    }
+    return "<strong>" + strDato + "</strong>";
+  }
+
+  function renderTabella(mappaDati, titolo, tipo) {
+    document.getElementById('area-orario').style.display = 'block';
+    document.getElementById('risultato-titolo').innerText = titolo;
+    const corpo = document.getElementById('corpo-orario');
+    corpo.innerHTML = "";
+    
+    for (let ora = 0; ora < 6; ora++) {
+      let tr = document.createElement('tr');
+      let tdOra = document.createElement('td'); tdOra.className = 'ora-col'; tdOra.innerText = (ora + 1) + '° Ora';
+      tr.appendChild(tdOra);
+      
+      for (let g = 0; g < 5; g++) {
+        let td = document.createElement('td');
+        let index = (g * 6) + ora;
+        td.innerHTML = (tipo === 'docente') ? formattaCellaDocente(mappaDati[index]) : formattaCellaClasse(mappaDati[index]);
+        tr.appendChild(td);
+      }
+      corpo.appendChild(tr);
+    }
+  }
+
+  function mostraOrarioDocente(p) { 
+    if(p) { 
+      document.getElementById('select-classe').value = ""; 
+      renderTabella(orarioProfessori[p], "Docente: "+p, 'docente'); 
+    }
+    gestisciPulsantiNavigazione(p);
+  }
+  
+  function mostraOrarioClasse(c) { 
+    if(c) { 
+      document.getElementById('select-prof').value = ""; 
+      renderTabella(orarioClassi[c], "Classe: "+c, 'classe'); 
+    }
+    gestisciPulsantiNavigazione("");
+  }
+
+  window.addEventListener('DOMContentLoaded', elaboraDatabaseInterno);
+</script>
+</body>
+</html>
