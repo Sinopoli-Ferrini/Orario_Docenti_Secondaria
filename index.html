@@ -57,7 +57,7 @@
 <div id="contiene">
   <header>   
     <h1>INTERROGA IL TUO ORARIO</h1>
-    <h2>SMS G. Sinopoli</h2>
+    <h2>I.C. Sinopoli-Ferrini </h2>
     <div id="versione-file" class="info-version">Caricamento dati locali...</div>
   </header>
   <main id="interfaccia-orario">
@@ -94,9 +94,9 @@
 <script>
   // Array rigido contenente le righe del database della scuola
   const righeOrarioSinopoli = [
-    "#SCHOOL:WP97:SMS G.Sinopoli",
+    "#SCHOOL:WP97:I.C.Sinopoli-Ferrini secondaria",
     "#CALE:5:6",
-    "#MEMO:Orario scolastico",
+    "#MEMO:Orario Sinopoli",
     "ALCINI:,,1/G/ ,1/G/ ,2/G/ ,3/G/ ,-3/G/ ,3/G/ ,1/G/ ,,,,-2/G/ ,2/G/ ,,1/G/ ,,1/G/ ,-3/G/ ,3/G/ ,2/G/ ,,,,-,,1/G/ ,2/G/ ,3/G/ ,2/G/ ,-",
     "ANTICI:3/E/ /PALESTRA,1/C/ /PALESTRA,2/B/ /PALESTRA,,3/B/ /PALESTRA,1/E/ /PALESTRA,-,1/B/ /PALESTRA,3/C/ /PALESTRA,,2/E/ /PALESTRA,2/C/ /PALESTRA,-,,,,2/B/ /PALESTRA,3/E/ /PALESTRA,-,,1/C/ /PALESTRA,1/E/ /PALESTRA,3/B/ /PALESTRA,3/C/ /PALESTRA,-,,,2/C/ /PALESTRA,2/E/ /PALESTRA,1/B/ /PALESTRA,-",
     "APPOLLONI:3/G/ /PALESTRA,1/G/ /PALESTRA,,,,,-2/I/ /PALESTRA,1/I/ /PALESTRA,3/I/ /PALESTRA,1/H/ /PALESTRA,,,-3/H/ /PALESTRA,1/L/ /PALESTRA,2/G/ /PALESTRA,,,,-2/I/ /PALESTRA,1/I/ /PALESTRA,1/G/ /PALESTRA,,3/I/ /PALESTRA,3/G/ /PALESTRA,-,3/H/ /PALESTRA,1/L/ /PALESTRA,,2/G/ /PALESTRA,1/H/ /PALESTRA,-",
@@ -105,13 +105,13 @@
     "CARNEVALI:,1/F/ ,1/F/ ,2/A/ ,R/ / ,3/F/ /TEATRO,-2/A/ ,2/A/ ,2/A/ ,3/F/ ,,3/F/ ,-,,3/F/ ,3/F/ ,2/A/ ,2/A/ ,-,,,1/F/ ,2/A/ ,1/F/ ,-,,,,3/F/ ,2/A/ ,-",
     "CECCACCIO:,,2/C/ ,2/G/ ,1/C/ ,3/C/ ,-1/A/ ,3/A/ ,,,,,-,,1/G/ ,2/A/ ,3/G/ ,1/C/ ,-3/C/ ,3/A/ ,,1/A/ ,,,-2/G/ ,2/C/ ,,1/G/ ,2/A/ ,3/G/ ,-",
     "CECILIA:3/D/ ,3/D/ ,2/D/ ,,,,-2/G/ ,1/G/ ,1/I/ ,,3/I/ ,3/I/ ,-,,3/G/ ,3/G/ ,1/D/ ,2/I/ ,-1/I/ ,2/G/ ,,,,,-,1/G/ ,,2/D/ ,2/I/ ,1/D/ ,-",
-    "CERCIELLO:1/E/ ,,2/A/ ,1/A/ ,2/E/ ,,-,,1/F/ ,2/F/ ,3/A/ ,3/E/ ,-3/F/ ,1/E/ ,1/A/ ,,,,-3/E/ ,2/A/ ,2/F/ ,3/A/ ,,2/E/ ,-1/F/ ,3/F/ ,,,,,-",
+    "CERCIELLO:1/E/ ,,2/A/ ,1/A/ ,2/E/ ,,-,,1/F/ ,2/F/ ,3/A/ ,3/E/ ,-3/F/ ,1/E/ ,1/A/ ,,,,-3/E/ ,2/A/ ,1/F/ ,3/A/ ,,2/E/ ,-2/F/ ,3/F/ ,,,,,-",
     "CESARO':1/F/ ,3/E/ ,2/F/ ,,3/F/ ,2/E/ ,-1/E/ ,3/F/ ,,,,,-,,,1/E/ ,1/F/ ,2/F/ ,-,2/F/ ,,2/E/ ,3/F/ ,3/E/ ,-1/E/ ,2/E/ ,3/E/ ,1/F/ ,,,-",
     "CORPOLONGO:,,,2/D/ /PALESTRA,3/A/ /PALESTRA,1/D/ /PALESTRA,-,,,1/F/ /PALESTRA,2/F/ /PALESTRA,2/A/ /PALESTRA,-3/D/ /PALESTRA,1/A/ /PALESTRA,,3/A/ /PALESTRA,2/D/ /PALESTRA,3/F/ /PALESTRA,-2/A/ /PALESTRA,1/F/ /PALESTRA,,1/D/ /PALESTRA,,,-3/F/ /PALESTRA,3/D/ /PALESTRA,1/A/ /PALESTRA,2/F/ /PALESTRA,,,-",
     "COSTACURTA:1/B/ ,2/F/ ,3/F/ ,,,,-,1/E/ ,,2/B/ ,1/F/ ,3/B/ ,-2/E/ ,3/F/ ,3/E/ ,,,,-,,,2/F/ ,1/E/ ,1/B/ ,-2/E/ ,3/B/ ,,2/B/ ,1/F/ ,3/E/ ,-",
     "DAIDONE:,P/O/T1,3/D/ ,R/ / ,P/O/T1,1/A/ ,-1/D/ ,1/A/ ,1/D/ ,,,,-,,,,P/O/T1,1/D/ ,-P/O/T1,1/D/ ,,3/D/ ,1/A/ ,1/A/ ,-1/D/ ,1/D/ ,3/D/ ,3/D/ ,,,-",
     "DAVOLI:,,,,,,-P/O/T1,1/H/ ,R/ / ,1/L/ ,P/O/T1,,-,,,,,,-,,1/H/ ,1/L/ ,P/O/T1,P/O/T1,-,,,,,,-",
-    "DE BELLA:,,,2/F/ /TEATRO,1/F/ /TEATRO,2/F/ ,-2/F/ ,2/F/ ,2/F/ ,,3/E/ ,1/F/ ,-1/F/ ,1/F/ ,2/F/ ,,,,-1/F/ ,,1/F/ ,3/E/ ,2/F/ ,2/F/ ,-2/F/ ,2/F/ ,,,,,-",
+    "DE BELLA:,,,2/F/ /TEATRO,1/F/ /TEATRO,2/F/ ,-2/F/ ,2/F/ ,2/F/ ,,3/E/ ,1/F/ ,-1/F/ ,1/F/ ,2/F/ ,,,,-1/F/ ,,2/F/ ,3/E/ ,2/F/ ,2/F/ ,-1/F/ ,2/F/ ,,,,,-",
     "DE MARCO:,,,2/B/ ,2/A/ ,1/B/ ,-3/A/ ,2/C/ ,,1/C/ ,3/B/ ,,-,,,2/B/ ,1/A/ ,3/C/ ,-3/B/ ,2/C/ ,1/B/ ,,,,-1/C/ ,3/C/ ,,2/A/ ,3/A/ ,1/A/ ,-",
     "DELL'OMO:2/C/ ,3/C/ ,3/C/ ,2/C/ ,,1/C/ ,-2/C/ ,1/C/ ,1/C/ ,,,,-2/C/ ,2/C/ ,,3/C/ ,1/C/ ,,-1/C/ ,3/C/ ,3/C/ ,,,,-,,,3/C/ ,2/C/ ,1/C/ ,-",
     "DELLA PIETRA:2/F/ ,3/H/ ,,1/H/ ,2/F/ ,3/H/ ,-,,,,1/H/ ,3/H/ ,-2/F/ ,2/F/ ,1/H/ ,1/H/ ,,,-2/F/ ,3/H/ ,3/H/ ,,,,-3/H/ ,1/H/ ,2/F/ ,1/H/ ,,,-",
@@ -146,8 +146,8 @@
     "VACCA TORELLI:1/L/ ,2/B/ ,1/H/ ,,,,-3/B/ ,,1/B/ ,3/H/ ,1/L/ ,,-1/H/ ,3/B/ ,2/B/ ,3/H/ ,,1/B/ ,-,,,2/B/ ,1/L/ ,1/H/ ,-3/B/ ,1/B/ ,3/H/ ,,,,-",
     "VALENTINI:1/D/ ,,3/I/ ,3/D/ ,1/G/ ,2/D/ ,-,,,3/G/ ,2/G/ ,2/I/ ,-,,,1/D/ ,1/I/ ,3/D/ ,-2/G/ ,,3/G/ ,1/G/ ,2/D/ ,,-2/I/ ,3/I/ ,1/I/ ,,,,-",
     "VINCI:,,1/L/ ,1/E/ ,1/E/ ,1/L/ ,-1/L/ ,1/L/ ,3/A/ ,3/A/ ,,,-,,,,1/L/ ,3/A/ ,-1/L/ ,1/L/ ,1/L/ /TEATRO,,3/A/ ,3/A/ ,-,,3/A/ ,,1/E/ ,1/E/ ,-",
-    "ZACCHEI:,,,,,,-,,,2/C/ ,,1/C/ ,-,,,,,,-,,2/C/ ,2/C/ ,1/C/ ,1/C/ ,-,,,,,,-"
-  ];
+    "ZACCHEI:,,,,,,-,,,2/C/ ,,1/C/ ,-,,,,,,-,,2/C/ ,2/C/ ,1/C/ ,1/C/ ,-,,,,,,-",
+     ];
 </script>
 <!-- ======================================================================= -->
 <!--                   FINE PARTE 2 - INIZIO PARTE 3: MOTORE DI CALCOLO      -->
